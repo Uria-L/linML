@@ -9,18 +9,21 @@ linML uses python for data collection and model training
 the project has 3 main components:
 
 1. data collector - collects data for training and for live monitoring of the system
+
 2. ML hub - train ML models
-2. detection engine - uses ML models for detection and response
+
+3. detection engine - uses ML models for detection and response
 
 # Requirements
 
 a linux machine
+
 python 3.12.3
 
 # Quick start
 
 1. clone the repo
-2. pip install -r requirements.txt
+2. pip install -r requirements.txt (it's recommended to use a virtual env)
 3.
 
 using linML has 3 steps:
@@ -29,14 +32,7 @@ using linML has 3 steps:
 2. train the ML models you want
 3. run the detection engine with the trained models to monitor your system
 
-
 # Methods
 
 The following methods are currently supported:
 - Endpoint process behavior classification (Isolation Forest) - flags anomalous processes
-
-
-# General Thoughts
-A method is a particular way to learn and protect our system.
-Each method could be implemented in a variety of ways.
-For example, process behavior classification could be done with an Isolation Forest, Auto-Encoder and many more ML techniques.
