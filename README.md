@@ -2,7 +2,7 @@
 
 linML aims to be the simplest way to use ML to protect a linux machine
 
-it does so by collecting data, and train multiple ML models to learn and protect the computer's normal usage
+it does so by collecting local data, and train multiple ML models to learn and protect the computer's normal usage
 
 linML uses python for data collection and model training
 

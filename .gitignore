@@ -1,11 +1,5 @@
-# ignore a specific data file
-# my_secret_data.json
-
-
 # ignore an entire folder of data
 # data_folder/
 /venv
 /__pycache__
-
-# ignore all enviroment variables
-.env
+/src/__pycache__
