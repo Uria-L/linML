@@ -1,0 +1,1 @@
+A method is a particular way to learn and protect our system. Each method could be implemented in a variety of ways. For example, process behavior classification could be done with an Isolation Forest, Auto-Encoder and many more ML techniques.
