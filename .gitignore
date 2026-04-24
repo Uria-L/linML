@@ -1,3 +1,6 @@
+# ignore a file
+guidelines.md
+
 # ignore an entire folder of data
 # data_folder/
 /venv
