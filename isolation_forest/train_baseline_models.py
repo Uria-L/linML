@@ -17,8 +17,8 @@ import numpy as np
 
 # CSV path setup
 SCRIPT_DIR = Path(__file__).parent.absolute()
-# PATH_TO_CSV = SCRIPT_DIR.parent / "data" / "metrics.csv"
-PATH_TO_CSV = ""
+PATH_TO_CSV = SCRIPT_DIR.parent / "data" / "metrics.csv"
+
 # model training functions
 
 def _sanitize_binary_name(binary_path) -> str:

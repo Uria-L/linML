@@ -3,6 +3,7 @@ collectors.py
 '''
 import time
 import os
+import hashlib
 import csv
 import logging
 from collections import defaultdict
@@ -56,7 +57,6 @@ def get_binary(pid: int) -> str:
         raise FileNotFoundError(f"Process {pid} not found") from e
     except PermissionError as e:
         raise PermissionError(f"cannot read executable from process {pid}: {e}") from e
-
 
 def metric_collect_cpu(pid: int) -> int:
     '''
@@ -417,6 +417,7 @@ def emit_features(csv_path: str, binaries_states: defaultdict[str, ProcState]) -
             writer.writerow([
                 ts,
                 binary,
+                hashlib.md5(binary.encode("utf-8")).hexdigest(),
                 state.rates["cpu"].mean(),
                 state.rates["io_read"].mean(),
                 state.rates["io_write"].mean()

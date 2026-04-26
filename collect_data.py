@@ -9,7 +9,7 @@ import config
 from src.collectors import collect_loop
 
 
-default_metrics = ["timestamp", "binary", "cpu", "io_read", "io_write"]
+default_metrics = ["timestamp", "binary", "binary_MD5_hash", "cpu", "io_read", "io_write"]
 
 def setup_csv_file(csv_path: str = "metrics.csv",
                    metrics: list[str] | None = None) -> None:
