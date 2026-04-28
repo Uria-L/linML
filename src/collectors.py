@@ -32,6 +32,8 @@ class ProcState:
         # self.count = {m: 0 for m in count_metrics}
         # self.static = {}
         self.last_updated = time.time()
+        self.baseline_score = 0.0
+        self.updating_score = 0.0
 
 # Collect loop function
 
@@ -391,7 +393,6 @@ def prune_binaries(binaries_states: dict[str, ProcState], loop_ts: int, stale_ti
 
     return n_pruned
 
-
 # Emit features functions
 def emit_features(csv_path: str, binaries_states: defaultdict[str, ProcState]) -> int:
     '''
@@ -433,7 +434,6 @@ def collect_loop(csv_path: str, emit_every: int):
     Arguments:
         csv_path (str): path to csv file which holds the data
         emit_every (int): how many seconds between each emit
-
 
     '''
 
