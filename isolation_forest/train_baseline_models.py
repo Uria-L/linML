@@ -9,6 +9,8 @@ from pathlib import Path
 import json
 import sys
 
+from src.utils import _sanitize_binary_name
+
 import joblib
 from sklearn.ensemble import IsolationForest
 import pandas as pd
@@ -21,10 +23,6 @@ PATH_TO_CSV = SCRIPT_DIR.parent / "data" / "metrics.csv"
 
 # model training functions
 
-def _sanitize_binary_name(binary_path) -> str:
-    '''Convert binary file path to a safe directory name'''
-    return str(binary_path).replace("/", "_")
-
 def _train_model(x_mat: np.ndarray,
                  contamination: float=0.01,
                  random_state: int=1984) -> IsolationForest:
@@ -32,7 +30,7 @@ def _train_model(x_mat: np.ndarray,
     Train a single Isolation Forest model
 
     Arguments:
-    x_mat (pd.DataFrame): matrix with numeric features
+    x_mat (np.ndarray): 1-D NumPy array with numeric features
     contamination (int): proportion of outliers in the data set
     random_state (int): controls psuedo-randomness
 
@@ -137,10 +135,11 @@ def train_model_by_binary(df: pd.DataFrame,
     for binary, binary_df in df.groupby(binary_column):
         print(f"\nTraining models for: {binary}")
 
-        # Split dataframe by binary
+        # Split dataframe by binary. x_mat is a NumPy array
         x_mat = binary_df.drop(columns=features_to_drop).values
 
         # Train both models on the same data
+
         baseline = _train_model(x_mat, contamination, random_state)
         updating = _train_model(x_mat, contamination, random_state)
 
@@ -178,6 +177,7 @@ def clean_data(df: pd.DataFrame,
     returns a cleaned dataframe for the isolation forest model
     - drops the timestamp column (if present)
     - keeps only numeric columns plus the 'binary' column (if present)
+    - sorts the columns in alphabetic order
 
     Arguments:
         df (pd.DataFrame):   dataframe with the entire data
@@ -194,12 +194,11 @@ def clean_data(df: pd.DataFrame,
         df = df.drop(columns=[timestamp_col])
 
     # keep numeric columns and the binary column
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    cols_to_keep = set(numeric_cols)
-    if keep_binary in df.columns:
-        cols_to_keep.add(keep_binary)
+    numeric_cols = sorted(df.select_dtypes(include=[np.number]).columns.tolist())
 
-    return df.loc[:, [c for c in df.columns if c in cols_to_keep]]
+    cols_to_keep = numeric_cols + ([keep_binary] if keep_binary in df.columns else [])
+
+    return df[cols_to_keep]
 
 # wrapper for the training process
 def train_models(path_to_csv: str) -> dict[str, dict]:

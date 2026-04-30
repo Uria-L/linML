@@ -3,6 +3,8 @@ guidelines.md
 data/metrics.csv
 isolation_forest/engine_README.md
 docs/things_to_add.md
+linML.egg-info
+
 
 # ignore an entire folder of data
 
