@@ -16,7 +16,6 @@ class RollingMean:
 
     def mean(self):
         return self.sum / len(self.q) if self.q else 0.0
-
 class RateMetric:
     """For cumulative totals → rate (CPU, IO bytes, Net bytes)"""
     def __init__(self, window_seconds=60):
@@ -41,8 +40,6 @@ class RateMetric:
 
     def mean(self):
         return self.rolling_mean.mean()
-
-
 class SampleMetric:
     """For point-in-time values (memory, child count)"""
     def __init__(self, window_seconds=60):
@@ -53,8 +50,6 @@ class SampleMetric:
 
     def mean(self):
         return self.rolling_mean.mean()
-
-
 class CountMetric:
     """For event counts that reset per window"""
     def __init__(self):
@@ -67,8 +62,6 @@ class CountMetric:
         val = self.count
         self.count = 0
         return val
-
-
 class StaticValue:
     """For categorical/single values"""
     def __init__(self):

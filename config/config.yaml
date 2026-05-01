@@ -1,0 +1,8 @@
+mode: development  # or "production"
+emit_every: 10
+
+development:
+  csv_path: ./data/metrics.csv
+
+production:
+  csv_path: /var/log/telemetry/metrics.csv

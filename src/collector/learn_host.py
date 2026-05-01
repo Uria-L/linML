@@ -5,8 +5,8 @@ import os
 import sys
 import csv
 
-import config
-from src.collectors import collect_loop
+from config import config
+from .collectors import collect_loop
 
 
 default_metrics = ["timestamp", "binary", "binary_MD5_hash", "cpu", "io_read", "io_write"]
@@ -47,7 +47,6 @@ def main():
     '''
     entry point for the telemetry agent
     collect data on host and dump it to a csv file
-    configuration of the telemetry agent is in agent_config.py
     '''
     print("Setting up telemetry agent")
     print(f"Creating csv file in {config.CSV_PATH}")
@@ -55,7 +54,6 @@ def main():
 
     setup_csv_file(csv_path = config.CSV_PATH, metrics = default_metrics)
     collect_loop(config.CSV_PATH, config.EMIT_EVERY)
-
 
 if __name__ == "__main__":
     try:

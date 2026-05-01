@@ -9,6 +9,7 @@ from pathlib import Path
 import json
 import sys
 
+from config import config
 from src.utils import _sanitize_binary_name
 
 import joblib
@@ -18,8 +19,7 @@ import numpy as np
 
 
 # CSV path setup
-SCRIPT_DIR = Path(__file__).parent.absolute()
-PATH_TO_CSV = SCRIPT_DIR.parent / "data" / "metrics.csv"
+PATH_TO_CSV = config.CSV_PATH
 
 # model training functions
 
@@ -109,7 +109,7 @@ def _save_metadata(results: dict[str, dict],
         json.dump(flattened, f, indent=2)
 
 def train_model_by_binary(df: pd.DataFrame,
-                     model_dir="models",
+                     model_dir="src/MLhub/isolation_forest/models",
                      contamination=0.01,
                      random_state=1984,
                      binary_column="binary") -> dict[str, dict]:

@@ -16,17 +16,15 @@ the project has 3 main components:
 
 # Requirements
 
-a linux machine
-
-python 3.12.3
+Just Linux & python
 
 # Quick start
 
 1. clone the repo
-2. pip install -r requirements.txt (it's recommended to use a virtual env)
-3.
+2. install -r requirements.txt (use venv)
+3. sudo python3 setup.py
 
-using linML has 3 steps:
+when you run setup.py, 3 tasks are scheduled:
 
 1. run the data collector to collect data on your machine for X days
 2. train the ML models you want
@@ -35,4 +33,4 @@ using linML has 3 steps:
 # Methods
 
 The following methods are currently supported:
-- Endpoint process behavior classification (Isolation Forest) - flags anomalous processes
+- Endpoint binary behavior classification (iForest) - flags anomalous binaries

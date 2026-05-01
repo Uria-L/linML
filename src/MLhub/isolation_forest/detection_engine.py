@@ -14,9 +14,9 @@ import numpy as np
 import joblib
 import onnxruntime as ort # used for onnx memory method
 
-from src.utils import _sanitize_binary_name
-from src.collectors import collect, aggregate, update_state
-from src.collectors import ProcState, RATE_METRICS
+from src.utils import _sanitize_binary_name, print_anomaly_score
+from src.collector.collectors import collect, aggregate, update_state
+from src.collector.collectors import ProcState, RATE_METRICS
 
 
 # step 1: load trained models
@@ -50,7 +50,7 @@ def _load_single_model(binary_dir: Path,
         return ort.InferenceSession(str(target_path))
 
     raise ValueError(f"Unknown memory_method: {method}")
-def load_models(path_to_models: Path = "",
+def load_models(path_to_models: Path = Path("src/MLhub/isolation_forest/models"),
                 memory_method: str = "joblib") -> dict[str, tuple[Any, Any]]:
     '''
     load the isolation forest models into memory
@@ -171,15 +171,30 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
 
 # step 4: flag anomalies
 
-# step 5: output results
+def flag_anomalies(binaries_states: dict[str, ProcState],
+                   flag_rule: str = "default") -> int:
+    '''
+    flag suspicious binaries based on their current state
+    flagging depends on the flag_rule variable
 
+    Argument:
+        binaries_states (dict[str, ProcState]): key: binary's path. value: binary's state
+
+    Returns:
+        number of flagged binaries
+    '''
+    for state in binaries_states.values():
+        pass
+
+# step 5: output results
 def isolation_forest_detection_engine():
     '''
     engine to detect and respond based on trained iForest models
     '''
 
     # set up data structures
-    registry = load_models(Path("./models"), memory_method = "joblib")
+
+    registry = load_models()
     metrics_to_collect = RATE_METRICS
     binaries_states = defaultdict(ProcState)
 
@@ -188,13 +203,12 @@ def isolation_forest_detection_engine():
 
         n_states = collect_binaries_states(binaries_states, metrics_to_collect, loop_ts)
         n_predicted = predict_per_binary(registry, binaries_states)
-        logging.info("%d states read %d predictions made", n_states, n_predicted)
+        logging.info("n_predicted: %d", n_predicted)
 
         time.sleep(5)
 def main():
     '''entry point'''
     isolation_forest_detection_engine()
-
 if __name__ == "__main__":
     try:
         main()
