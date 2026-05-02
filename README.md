@@ -22,13 +22,11 @@ Just Linux & python
 
 1. clone the repo
 2. install -r requirements.txt (use venv)
-3. sudo python3 setup.py
+3. sudo python3 setup_collector.py
+4. sudo python3 setup_engine.py
 
-when you run setup.py, 3 tasks are scheduled:
-
-1. run the data collector to collect data on your machine for X days
-2. train the ML models you want
-3. run the detection engine with the trained models to monitor your system
+step 3 configures the data collector as a systemd service
+step 4 trains the selected models, and starts the detection engine as a systemd service
 
 # Methods
 
