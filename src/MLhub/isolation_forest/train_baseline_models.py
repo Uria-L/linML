@@ -100,13 +100,23 @@ def _save_metadata(results: dict[str, dict],
     Arguments:
         results (dict[str, dict]): key: binary. value: meta-data
         model_dir (Path): path to the models directory
+    Raises:
+        FileNotFoundError: the 'models' directory doesn't exist
+        PermissionError:   no permission to write to the 'models' directory
+        IOError:           other error to write metadata
     """
     flattened = {}
     for meta in results.values():
         flattened.update(meta)
-
-    with open(model_dir / "metadata.json", "w", encoding="utf-8") as f:
-        json.dump(flattened, f, indent=2)
+    try:
+        with open(model_dir / "metadata.json", "w", encoding="utf-8") as f:
+            json.dump(flattened, f, indent=2)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Parent directory doesn't exist: {model_dir}") from e
+    except PermissionError as e:
+        raise PermissionError (f"No permission to write to {model_dir}") from e
+    except IOError as e:
+        raise IOError(f"Error writing file: {e}") from e
 
 def train_model_by_binary(df: pd.DataFrame,
                      model_dir="src/MLhub/isolation_forest/models",
@@ -228,6 +238,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except Exception as e:
-        print(f"fatal error: {e}")
+    except (FileNotFoundError, PermissionError, IOError, ValueError) as e:
+        print(f"fatal failure: {e}")
         sys.exit(1)
