@@ -45,7 +45,6 @@ def _train_model(x_mat: np.ndarray,
     )
     model.fit(x_mat)
     return model
-
 def _save_models(binary: str,
                  baseline: IsolationForest,
                  updating: IsolationForest,
@@ -65,7 +64,6 @@ def _save_models(binary: str,
 
     joblib.dump(baseline, binary_dir / "baseline.joblib")
     joblib.dump(updating, binary_dir / "updating.joblib")
-
 def _generate_metadata(binary: str,
                        x_mat: np.ndarray,
                        contamination: float) -> dict[str, dict]:
@@ -92,7 +90,6 @@ def _generate_metadata(binary: str,
             "retrain_interval_hours": 6
         }
     }
-
 def _save_metadata(results: dict[str, dict],
                    model_dir: Path) -> None:
     """
@@ -117,7 +114,6 @@ def _save_metadata(results: dict[str, dict],
         raise PermissionError (f"No permission to write to {model_dir}") from e
     except IOError as e:
         raise IOError(f"Error writing file: {e}") from e
-
 def train_model_by_binary(df: pd.DataFrame,
                      model_dir="src/MLhub/isolation_forest/models",
                      contamination=0.01,
@@ -179,7 +175,6 @@ def load_data(path_to_csv: str) -> pd.DataFrame:
         raise FileNotFoundError(f"Data not found in {path_to_csv}") from e
     except pd.errors.ParserError as e:
         raise ValueError(f"corrupt CSV file: {e}") from e
-
 def clean_data(df: pd.DataFrame,
                timestamp_col: str = "timestamp",
                keep_binary: str = "binary") -> pd.DataFrame:

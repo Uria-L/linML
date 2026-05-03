@@ -167,6 +167,7 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
         state.baseline_score = baseline_model.decision_function(x_vec)
         state.updating_score = updating_model.decision_function(x_vec)
 
+    print_anomaly_score(binaries_states)
     return len(registered_binaries)
 
 # step 4: flag anomalies
@@ -183,9 +184,25 @@ def flag_anomalies(binaries_states: dict[str, ProcState],
     Returns:
         number of flagged binaries
     '''
-    for state in binaries_states.values():
-        pass
+    n_flagged = 0
 
+    for binary, state in binaries_states.items():
+        base_anomalous = state.baseline_score < 0
+        upd_anomalous = state.updating_score < 0
+
+        if base_anomalous and upd_anomalous:
+            print(f"binary {binary} is suspicous by both models")
+            n_flagged += 1
+
+        elif base_anomalous and not upd_anomalous:
+            print(f"binary {binary}'s old behavior has changed")
+            n_flagged += 1
+
+        elif not base_anomalous and upd_anomalous:
+            print(f"binary {binary} behaves weird with respect to his new behavior")
+            n_flagged += 1
+
+    return n_flagged
 # step 5: output results
 def isolation_forest_detection_engine():
     '''
@@ -203,6 +220,7 @@ def isolation_forest_detection_engine():
 
         n_states = collect_binaries_states(binaries_states, metrics_to_collect, loop_ts)
         n_predicted = predict_per_binary(registry, binaries_states)
+        n_flagged = flag_anomalies(binaries_states)
         logging.info("n_predicted: %d", n_predicted)
 
         time.sleep(5)
