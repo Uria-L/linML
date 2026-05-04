@@ -7,7 +7,7 @@ import hashlib
 import csv
 import logging
 from collections import defaultdict
-
+from enum import Enum
 from .metrics import RateMetric
 
 
@@ -19,6 +19,13 @@ logging.basicConfig(
 
 # Metrics to collect appear here as a single source of truth
 RATE_METRICS = ["cpu", "io_read", "io_write"]
+
+class FlagStatus(Enum):
+    '''possible flag status'''
+    CLEAN = "clean"
+    SUSPICIOUS = "suspicious"
+    MALICIOUS = "malicious"
+    UNKNOWN = "unknown"
 
 class ProcState:
     '''
@@ -34,12 +41,10 @@ class ProcState:
         self.last_updated = time.time()
         self.baseline_score = 0.0
         self.updating_score = 0.0
-
-# Collect loop function
+        self.flagged = FlagStatus.UNKNOWN
+        self.flag_reason = None
 
 ## Collect metrics functions
-
-
 def get_binary(pid: int) -> str:
     '''
     get binary path for given PID

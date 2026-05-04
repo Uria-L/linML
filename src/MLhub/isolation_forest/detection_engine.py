@@ -118,7 +118,6 @@ def collect_binaries_states(binaries_states: dict[str, ProcState],
     return n_updated
 
 # step 3: predict using both baseline and updated models, per binary
-
 def _extract_features_from_state(state: ProcState) -> np.ndarray:
     '''
     extract features from ProcState as a np.ndarray (1, n_features)
@@ -157,6 +156,7 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
     binaries_states = {_sanitize_binary_name(p): state for p, state in binaries_states.items()}
     registered_binaries = set(registry) & set(binaries_states)
 
+
     for binary in registered_binaries:
         state = binaries_states[binary]
         baseline_model = registry[binary][0]
@@ -167,11 +167,10 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
         state.baseline_score = baseline_model.decision_function(x_vec)
         state.updating_score = updating_model.decision_function(x_vec)
 
-    print_anomaly_score(binaries_states)
+
     return len(registered_binaries)
 
 # step 4: flag anomalies
-
 def flag_anomalies(binaries_states: dict[str, ProcState],
                    flag_rule: str = "default") -> int:
     '''
@@ -204,6 +203,7 @@ def flag_anomalies(binaries_states: dict[str, ProcState],
 
     return n_flagged
 # step 5: output results
+
 def isolation_forest_detection_engine():
     '''
     engine to detect and respond based on trained iForest models
@@ -212,6 +212,7 @@ def isolation_forest_detection_engine():
     # set up data structures
 
     registry = load_models()
+    incident_db = IncidentDB("src/MLhub/isolation_forest/models/incidents.db")
     metrics_to_collect = RATE_METRICS
     binaries_states = defaultdict(ProcState)
 
@@ -221,12 +222,16 @@ def isolation_forest_detection_engine():
         n_states = collect_binaries_states(binaries_states, metrics_to_collect, loop_ts)
         n_predicted = predict_per_binary(registry, binaries_states)
         n_flagged = flag_anomalies(binaries_states)
-        logging.info("n_predicted: %d", n_predicted)
+        logging.info("%d active binaries, %d predicted, %d flagged", n_states, n_predicted, n_flagged)
+
+
 
         time.sleep(5)
+
 def main():
     '''entry point'''
     isolation_forest_detection_engine()
+
 if __name__ == "__main__":
     try:
         main()
