@@ -22,3 +22,9 @@ python3 train_baseline_models.py
 to monitor the system run the following command:
 
 python3 detection_engine.py
+
+# How does the module work?
+
+There are two basic steps to use the iForest module for protecting our endpoint:
+1. train the iForest models (one model per binary)
+2. run the detection engine, which handles incidents by logging and responding

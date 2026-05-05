@@ -17,7 +17,7 @@ import onnxruntime as ort # used for onnx memory method
 from src.utils import _sanitize_binary_name, print_anomaly_score
 from src.collector.collectors import collect, aggregate, update_state
 from src.collector.collectors import ProcState, RATE_METRICS
-
+from src.MLhub.isolation_forest.incident_store import IncidentDB
 
 # step 1: load trained models
 def _load_single_model(binary_dir: Path,
@@ -212,7 +212,7 @@ def isolation_forest_detection_engine():
     # set up data structures
 
     registry = load_models()
-    incident_db = IncidentDB("src/MLhub/isolation_forest/models/incidents.db")
+    incident_db = IncidentDB("src/MLhub/isolation_forest/incidents.db")
     metrics_to_collect = RATE_METRICS
     binaries_states = defaultdict(ProcState)
 
@@ -223,9 +223,6 @@ def isolation_forest_detection_engine():
         n_predicted = predict_per_binary(registry, binaries_states)
         n_flagged = flag_anomalies(binaries_states)
         logging.info("%d active binaries, %d predicted, %d flagged", n_states, n_predicted, n_flagged)
-
-
-
         time.sleep(5)
 
 def main():

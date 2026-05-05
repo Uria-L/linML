@@ -4,8 +4,10 @@ handles DB of incidents, for the iForest method
 '''
 
 import sqlite3
+import os
+from src.collector.collectors import ProcState
 
-class incidentDB:
+class IncidentDB:
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.init_db()
