@@ -9,15 +9,16 @@ import logging
 from pathlib import Path
 from typing import Any
 from collections import defaultdict
+from datetime import datetime
 
 import numpy as np
 import joblib
 import onnxruntime as ort # used for onnx memory method
 
-from src.utils import _sanitize_binary_name, print_anomaly_score
+from src.utils import _sanitize_binary_name
 from src.collector.collectors import collect, aggregate, update_state
 from src.collector.collectors import ProcState, RATE_METRICS
-from src.MLhub.isolation_forest.incident_store import IncidentDB
+from src.MLhub.isolation_forest.incident_store import IncidentDB, DetectionEvent
 
 # step 1: load trained models
 def _load_single_model(binary_dir: Path,
@@ -167,12 +168,10 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
         state.baseline_score = baseline_model.decision_function(x_vec)
         state.updating_score = updating_model.decision_function(x_vec)
 
-
     return len(registered_binaries)
 
 # step 4: flag anomalies
-def flag_anomalies(binaries_states: dict[str, ProcState],
-                   flag_rule: str = "default") -> int:
+def flag_anomalies(binaries_states: dict[str, ProcState]) -> tuple[int, list[DetectionEvent]]:
     '''
     flag suspicious binaries based on their current state
     flagging depends on the flag_rule variable
@@ -181,32 +180,30 @@ def flag_anomalies(binaries_states: dict[str, ProcState],
         binaries_states (dict[str, ProcState]): key: binary's path. value: binary's state
 
     Returns:
-        number of flagged binaries
+        int, list[DetectionEvent]: number of flagged binaries, suspicious events
     '''
+    events = []
     n_flagged = 0
+    now = datetime.utcnow()
 
     for binary, state in binaries_states.items():
         base_anomalous = state.baseline_score < 0
         upd_anomalous = state.updating_score < 0
 
         if base_anomalous and upd_anomalous:
-            print(f"binary {binary} is suspicous by both models")
+            events.append(DetectionEvent(
+                binary_path = binary,
+                anomaly_score=float(state.baseline_score),
+                detected_at=now
+            ))
             n_flagged += 1
 
-        elif base_anomalous and not upd_anomalous:
-            print(f"binary {binary}'s old behavior has changed")
-            n_flagged += 1
+    return n_flagged, events
 
-        elif not base_anomalous and upd_anomalous:
-            print(f"binary {binary} behaves weird with respect to his new behavior")
-            n_flagged += 1
-
-    return n_flagged
-# step 5: output results
 
 def isolation_forest_detection_engine():
     '''
-    engine to detect and respond based on trained iForest models
+    engine to detect based on trained iForest models
     '''
 
     # set up data structures
@@ -221,8 +218,9 @@ def isolation_forest_detection_engine():
 
         n_states = collect_binaries_states(binaries_states, metrics_to_collect, loop_ts)
         n_predicted = predict_per_binary(registry, binaries_states)
-        n_flagged = flag_anomalies(binaries_states)
-        logging.info("%d active binaries, %d predicted, %d flagged", n_states, n_predicted, n_flagged)
+        n_flagged, events = flag_anomalies(binaries_states)
+        incident_db.ingest(events)
+        logging.info("%d active binaries, %d predicted, %d flagged",n_states,n_predicted,n_flagged)
         time.sleep(5)
 
 def main():
