@@ -20,12 +20,6 @@ logging.basicConfig(
 # Metrics to collect appear here as a single source of truth
 RATE_METRICS = ["cpu", "io_read", "io_write"]
 
-class FlagStatus(Enum):
-    '''possible flag status'''
-    CLEAN = "clean"
-    SUSPICIOUS = "suspicious"
-    MALICIOUS = "malicious"
-    UNKNOWN = "unknown"
 
 class ProcState:
     '''

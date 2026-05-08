@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from typing import Any
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, UTC
 
 import numpy as np
 import joblib
@@ -163,10 +163,11 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
         baseline_model = registry[binary][0]
         updating_model = registry[binary][1]
 
-
         x_vec = _extract_features_from_state(state)
-        state.baseline_score = baseline_model.decision_function(x_vec)
-        state.updating_score = updating_model.decision_function(x_vec)
+
+        # .item() extracts a float from the iForest decision_function method
+        state.baseline_score = baseline_model.decision_function(x_vec).item()
+        state.updating_score = updating_model.decision_function(x_vec).item()
 
     return len(registered_binaries)
 
@@ -174,17 +175,15 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
 def flag_anomalies(binaries_states: dict[str, ProcState]) -> tuple[int, list[DetectionEvent]]:
     '''
     flag suspicious binaries based on their current state
-    flagging depends on the flag_rule variable
 
     Argument:
         binaries_states (dict[str, ProcState]): key: binary's path. value: binary's state
 
     Returns:
-        int, list[DetectionEvent]: number of flagged binaries, suspicious events
+        list[DetectionEvent]: list of anomalous events
     '''
     events = []
-    n_flagged = 0
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
 
     for binary, state in binaries_states.items():
         base_anomalous = state.baseline_score < 0
@@ -196,10 +195,8 @@ def flag_anomalies(binaries_states: dict[str, ProcState]) -> tuple[int, list[Det
                 anomaly_score=float(state.baseline_score),
                 detected_at=now
             ))
-            n_flagged += 1
 
-    return n_flagged, events
-
+    return events
 
 def isolation_forest_detection_engine():
     '''
@@ -218,9 +215,12 @@ def isolation_forest_detection_engine():
 
         n_states = collect_binaries_states(binaries_states, metrics_to_collect, loop_ts)
         n_predicted = predict_per_binary(registry, binaries_states)
-        n_flagged, events = flag_anomalies(binaries_states)
+        events = flag_anomalies(binaries_states)
+        logging.info("%d active binaries,%d predicted,%d flagged",n_states,n_predicted,len(events))
+
+        print("sending an ingest command to event...")
         incident_db.ingest(events)
-        logging.info("%d active binaries, %d predicted, %d flagged",n_states,n_predicted,n_flagged)
+
         time.sleep(5)
 
 def main():
