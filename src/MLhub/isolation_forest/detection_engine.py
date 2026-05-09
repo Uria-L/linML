@@ -213,7 +213,7 @@ def isolation_forest_detection_engine():
         events = flag_anomalies(binaries_states)
         logging.info("%d active binaries,%d predicted,%d flagged",n_states,n_predicted,len(events))
 
-        print("sending an ingest command to event...")
+
         incident_db.ingest(events)
 
         time.sleep(5)
