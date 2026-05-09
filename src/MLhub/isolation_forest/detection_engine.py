@@ -71,17 +71,13 @@ def load_models(path_to_models: Path = Path("src/MLhub/isolation_forest/models")
         raise FileNotFoundError(f"Model directory not found: {path_to_models}")
 
     models_registry = {}
-
     print(f"Loading models from: {path_to_models.absolute()}")
 
     for binary_dir in path_to_models.iterdir():
         if not binary_dir.is_dir():
-
             continue
 
         binary_name = binary_dir.name
-
-
         baseline = _load_single_model(binary_dir, "baseline", memory_method)
         updating = _load_single_model(binary_dir, "updating", memory_method)
 
@@ -111,11 +107,10 @@ def collect_binaries_states(binaries_states: dict[str, ProcState],
     pids_metrics = {}
     binaries_metrics = {}
 
-    n_collected = collect(pid_binary, pids_metrics, metrics_to_collect)
-    n_aggregated = aggregate(pid_binary, pids_metrics, binaries_metrics)
+    collect(pid_binary, pids_metrics, metrics_to_collect)
+    aggregate(pid_binary, pids_metrics, binaries_metrics)
     n_updated = update_state(binaries_metrics, binaries_states, loop_ts)
 
-    logging.info("collected:%d aggregated:%d updated:%d", n_collected,n_aggregated,n_updated)
     return n_updated
 
 # step 3: predict using both baseline and updated models, per binary
@@ -230,5 +225,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"error: {e}") from e
     except KeyboardInterrupt:
         print("\nUser shut down. Stopping iForest detection engine...\n")

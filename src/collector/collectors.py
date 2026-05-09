@@ -7,7 +7,6 @@ import hashlib
 import csv
 import logging
 from collections import defaultdict
-from enum import Enum
 from .metrics import RateMetric
 
 
@@ -35,7 +34,6 @@ class ProcState:
         self.last_updated = time.time()
         self.baseline_score = 0.0
         self.updating_score = 0.0
-        self.flagged = FlagStatus.UNKNOWN
         self.flag_reason = None
 
 ## Collect metrics functions

@@ -83,10 +83,7 @@ def _generate_metadata(binary: str,
             "trained_date": datetime.now().isoformat(),
             "n_samples": len(x_mat),
             "n_features": x_mat.shape[1],
-            "baseline_threshold": 0.6,
-            "updating_threshold": 0.65,
             "contamination": contamination,
-            "window_size": 1000,
             "retrain_interval_hours": 6
         }
     }
@@ -136,16 +133,15 @@ def train_model_by_binary(df: pd.DataFrame,
     model_dir.mkdir(exist_ok=True)
 
     results = {}
-    features_to_drop = [binary_column]
 
+    # Split dataframe by binary
     for binary, binary_df in df.groupby(binary_column):
         print(f"\nTraining models for: {binary}")
 
-        # Split dataframe by binary. x_mat is a NumPy array
-        x_mat = binary_df.drop(columns=features_to_drop).values
+        # x_mat is a NumPy array
+        x_mat = binary_df.drop(columns=[binary_column]).to_numpy(dtype=np.float32)
 
         # Train both models on the same data
-
         baseline = _train_model(x_mat, contamination, random_state)
         updating = _train_model(x_mat, contamination, random_state)
 
@@ -157,8 +153,38 @@ def train_model_by_binary(df: pd.DataFrame,
 
     _save_metadata(results, model_dir)
     return results
+def train_global_models(df: pd.DataFrame,
+                       model_dir="src/MLhub/isolation_forest/models",
+                       contamination=0.01,
+                       random_state=1984,
+                       binary_column="binary") -> tuple[IsolationForest, IsolationForest]:
+    '''
+    train a global reference iForest model. uses the entire dataset
 
-# data functions
+    Args:
+        df: DataFrame with numeric features and a 'binary' column
+        model_dir: directory to save models
+        contamination: contamination parameter for IsolationForest
+        random_state: random state for reproducibility
+        binary_column: name of a column with binaries paths
+
+    Returns:
+        tuple (IsolationForest, IsolationForest): baseline model, updating model
+    '''
+    model_dir = Path(model_dir)
+    model_dir.mkdir(exist_ok=True)
+    binary = "_global_model"
+
+    x_mat = (df
+             .drop(columns=[binary_column])
+             .select_dtypes(include=np.number)
+             .to_numpy(dtype=np.float32)
+             )
+    baseline = _train_model(x_mat, contamination, random_state)
+    updating = _train_model(x_mat, contamination, random_state)
+    _save_models(binary, baseline, updating, model_dir)
+    return  _generate_metadata(binary, x_mat, contamination)
+
 def load_data(path_to_csv: str) -> pd.DataFrame:
     '''
     load CSV as a pandas dataframe
@@ -219,6 +245,7 @@ def train_models(path_to_csv: str) -> dict[str, dict]:
     df = load_data(path_to_csv)
     clean_df = clean_data(df)
     results = train_model_by_binary(clean_df)
+    train_global_models(clean_df)
 
     return results
 

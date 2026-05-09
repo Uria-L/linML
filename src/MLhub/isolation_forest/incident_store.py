@@ -124,7 +124,7 @@ class IncidentDB:
         valid_events, n_errors = self.filter_valid_events(events)
 
         if not valid_events:
-            print(f"ingestion failed. 0 valid events found ({n_errors} errors)")
+            print(f"ingestion stopped: 0 valid events found ({n_errors} errors)")
 
         conn = sqlite3.connect(self.db_path)
         try:

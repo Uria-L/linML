@@ -20,7 +20,6 @@ def run(cmd, check=True):
         return False
     return True
 
-
 def setup(project_root, venv_path, module_path, user="root"):
     """Setup telemetry systemd service."""
 
@@ -72,7 +71,7 @@ WantedBy=multi-user.target
 
 
     service_file.write_text(service_content)
-    print(f"✓ Created {service_file}")
+    print(f" Created {service_file}")
 
     # Create logrotate config
     logrotate_content = f"""{log_dir}/metrics.csv {{
@@ -87,18 +86,18 @@ WantedBy=multi-user.target
 
     logrotate_file = Path("/etc/logrotate.d/linML-collector")
     logrotate_file.write_text(logrotate_content)
-    print(f"✓ Created {logrotate_file}")
+    print(f" Created {logrotate_file}")
 
     # Create log directory
     log_dir.mkdir(parents=True, exist_ok=True)
     run(["chown", f"{user}:{user}", str(log_dir)])
-    print(f"✓ Created {log_dir}")
+    print(f" Created {log_dir}")
 
     # Enable and start
     run(["systemctl", "daemon-reload"])
     run(["systemctl", "enable", "linML-collector.service"])
     run(["systemctl", "start", "linML-collector.service"])
-    print("✓ Service enabled and started")
+    print(" Service enabled and started")
 
     # Verify
     result = subprocess.run(
@@ -108,10 +107,10 @@ WantedBy=multi-user.target
     )
 
     if result.returncode == 0:
-        print("✓ Service is running")
+        print(" Service is running")
         return True
 
-    print("✗ Service failed to start")
+    print(" Service failed to start")
     subprocess.run(["journalctl", "-u", "linML-collector.service", "-n", "20"], check=False)
     return False
 
