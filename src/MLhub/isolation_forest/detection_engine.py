@@ -51,6 +51,7 @@ def _load_single_model(binary_dir: Path,
         return ort.InferenceSession(str(target_path))
 
     raise ValueError(f"Unknown memory_method: {method}")
+
 def load_models(path_to_models: Path = Path("src/MLhub/isolation_forest/models"),
                 memory_method: str = "joblib") -> dict[str, tuple[Any, Any]]:
     '''
@@ -133,6 +134,7 @@ def _extract_features_from_state(state: ProcState) -> np.ndarray:
 
 
     return np.array(features, dtype=np.float64).reshape(1, -1)
+
 def predict_per_binary(registry: dict[str, tuple[Any, Any]],
                        binaries_states: dict[str, ProcState]) -> int:
     '''
@@ -166,6 +168,39 @@ def predict_per_binary(registry: dict[str, tuple[Any, Any]],
 
     return len(registered_binaries)
 
+def predict_per_binary_including_global(registry: dict[str, tuple[Any, Any]],
+                                        binaries_states: dict[str, ProcState],
+                                        global_model_name: str = "_global_model") -> int:
+    '''
+    predicts the anomaly score for each binary, using models in the registry
+    if no model is registered for some binary, it uses a global reference
+    updates the baseline_score and updating_score for each binary
+
+    Arguments:
+        registry (dict[str, tuple(Any, Any)]): binary path, (base model, updating model)
+        binaries_states (dict[str, ProcState]): binary path, ProcState
+        global_model_name (str): the name of a 'generic' model, fitted on all data
+    Returns:
+        int, int: number of anomaly scores updated, number of fallback binaries
+    '''
+
+    # we sanitize the keys of the binaries_states
+    binaries_states = {_sanitize_binary_name(p): state for p, state in binaries_states.items()}
+    fallback_binaries = []
+
+    for binary in binaries_states:
+        state = binaries_states[binary]
+        baseline_model, updating_model = registry.get(binary, registry[global_model_name])
+        if binary not in registry:
+            fallback_binaries.append(binary)
+
+        x_vec = _extract_features_from_state(state)
+        state.baseline_score = baseline_model.decision_function(x_vec).item()
+        state.updating_score = updating_model.decision_function(x_vec).item()
+
+    return len(binaries_states), len(fallback_binaries)
+
+
 # step 4: flag anomalies
 def flag_anomalies(binaries_states: dict[str, ProcState]) -> tuple[int, list[DetectionEvent]]:
     '''
@@ -193,7 +228,7 @@ def flag_anomalies(binaries_states: dict[str, ProcState]) -> tuple[int, list[Det
 
     return events
 
-def isolation_forest_detection_engine():
+def isolation_forest_detection_engine() -> None:
     '''
     engine to detect based on trained iForest models
     '''
@@ -209,11 +244,10 @@ def isolation_forest_detection_engine():
         loop_ts = time.time()
 
         n_states = collect_binaries_states(binaries_states, metrics_to_collect, loop_ts)
-        n_predicted = predict_per_binary(registry, binaries_states)
+        n_predicted, n_fallbacks = predict_per_binary_including_global(registry, binaries_states)
         events = flag_anomalies(binaries_states)
         logging.info("%d active binaries,%d predicted,%d flagged",n_states,n_predicted,len(events))
-
-
+        logging.info("%d fallback binaries", n_fallbacks)
         incident_db.ingest(events)
 
         time.sleep(5)
