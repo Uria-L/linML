@@ -6,6 +6,7 @@ default memory method is joblib
 
 import time
 import logging
+import hashlib
 from pathlib import Path
 from typing import Any
 from collections import defaultdict
@@ -23,7 +24,7 @@ from src.MLhub.isolation_forest.incident_store import IncidentDB, DetectionEvent
 # step 1: load trained models
 def _load_single_model(binary_dir: Path,
                       model_type: str,
-                      method: str) -> Any:
+                      memory_method: str) -> Any:
     '''
     helper to handle the specific loading logic based on method
 
@@ -38,20 +39,19 @@ def _load_single_model(binary_dir: Path,
     Raises:
         ValueError: unknown memory method
     '''
-    ext = ".joblib" if method == "joblib" else ".onnx"
+    ext = ".joblib" if memory_method == "joblib" else ".onnx"
     target_path = binary_dir / f"{model_type}{ext}"
 
     if not target_path.exists():
         return None
 
-    if method == "joblib":
+    if memory_method == "joblib":
         return joblib.load(target_path)
 
-    if method == "onnx":
+    if memory_method == "onnx":
         return ort.InferenceSession(str(target_path))
 
-    raise ValueError(f"Unknown memory_method: {method}")
-
+    raise ValueError(f"Unknown memory_method: {memory_method}")
 def load_models(path_to_models: Path = Path("src/MLhub/isolation_forest/models"),
                 memory_method: str = "joblib") -> dict[str, tuple[Any, Any]]:
     '''
@@ -134,7 +134,6 @@ def _extract_features_from_state(state: ProcState) -> np.ndarray:
 
 
     return np.array(features, dtype=np.float64).reshape(1, -1)
-
 def predict_per_binary(registry: dict[str, tuple[Any, Any]],
                        binaries_states: dict[str, ProcState]) -> int:
     '''
@@ -200,8 +199,24 @@ def predict_per_binary_including_global(registry: dict[str, tuple[Any, Any]],
 
     return len(binaries_states), len(fallback_binaries)
 
-
 # step 4: flag anomalies
+
+def _sha256_of_binary(path: Path, chunk_size: int = 64 * 1024) -> str:
+    '''
+    calculate SHA256 of a binary's content
+    we need to validate that Path is a valid binary path
+    Arguments:
+        path (Path): path to flagged binary
+        chunk_str (int): how big every chunk of the binary's content
+    Returns:
+        (str): hash of binary's content in hexadecimal
+    '''
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(chunk_size), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
 def flag_anomalies(binaries_states: dict[str, ProcState]) -> tuple[int, list[DetectionEvent]]:
     '''
     flag suspicious binaries based on their current state

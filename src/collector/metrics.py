@@ -50,6 +50,7 @@ class SampleMetric:
 
     def mean(self):
         return self.rolling_mean.mean()
+
 class CountMetric:
     """For event counts that reset per window"""
     def __init__(self):

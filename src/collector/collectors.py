@@ -18,7 +18,7 @@ logging.basicConfig(
 
 # Metrics to collect appear here as a single source of truth
 RATE_METRICS = ["cpu", "io_read", "io_write"]
-
+SAMPLE_METRICS = ["child_count"]
 
 class ProcState:
     '''
