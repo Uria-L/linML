@@ -34,3 +34,4 @@ There are three basic steps to use the iForest module for protecting our endpoin
 # Things to do
 
 - [] start writing the response engine
+- [] write safe hash logic for flagged binaries

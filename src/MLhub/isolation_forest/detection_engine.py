@@ -16,7 +16,7 @@ import numpy as np
 import joblib
 import onnxruntime as ort # used for onnx memory method
 
-from src.utils import _sanitize_binary_name
+from src.utils import _sanitize_binary_name, _desanitize_binary_name
 from src.collector.collectors import collect, aggregate, update_state
 from src.collector.collectors import ProcState, RATE_METRICS
 from src.MLhub.isolation_forest.incident_store import IncidentDB, DetectionEvent
@@ -235,10 +235,14 @@ def flag_anomalies(binaries_states: dict[str, ProcState]) -> tuple[int, list[Det
         upd_anomalous = state.updating_score < 0
 
         if base_anomalous and upd_anomalous:
+
+            path_to_binary = _desanitize_binary_name(binary)
+            sha256_of_binary = _sha256_of_binary(path_to_binary)
             events.append(DetectionEvent(
                 binary_path = binary,
                 anomaly_score=float(state.baseline_score),
-                detected_at=now
+                detected_at=now,
+                sha256_of_binary=sha256_of_binary
             ))
 
     return events

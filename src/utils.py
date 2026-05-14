@@ -1,11 +1,25 @@
 '''
 utils.py
 '''
-
+from pathlib import Path
 from .collector.collectors import ProcState
 
-def _sanitize_binary_name(binary_path) -> str:
-    '''Convert binary file path to a safe directory name'''
+
+def _desanitize_binary_name(encoded_path: str) -> Path:
+    '''
+    decode a path for a binary, where underscore replace slashes
+
+    Arguments:
+        encoded_path (str): the path to a binary, with underscores
+    Returns:
+        (Patj): path to binary with slahes
+    '''
+    return Path("/" + encoded_path.lstrip("_").replace("_", "/"))
+
+def _sanitize_binary_name(binary_path: str) -> str:
+    '''
+    Convert binary file path to a safe directory name
+    '''
     return str(binary_path).replace("/", "_")
 
 

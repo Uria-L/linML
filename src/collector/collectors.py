@@ -56,7 +56,6 @@ def get_binary(pid: int) -> str:
         raise FileNotFoundError(f"Process {pid} not found") from e
     except PermissionError as e:
         raise PermissionError(f"cannot read executable from process {pid}: {e}") from e
-
 def metric_collect_cpu(pid: int) -> int:
     '''
     collect total cpu ticks for a given pid
