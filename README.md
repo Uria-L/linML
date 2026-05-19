@@ -28,7 +28,7 @@ Linux & Python
 
 step 3 starts the data collector as a systemd service
 
-step 4 trains selected models on the data collected from host
+step 4 trains the selected models on the data collected from host
 
 step 5 starts the detection engine as a systemd service
 
