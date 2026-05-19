@@ -22,7 +22,7 @@ Linux & Python
 
 1. clone the repo
 2. install -r requirements.txt (use venv)
-3. sudo python3 setup_collector.py --venv-path venv_name/ --module-path src.collector.learn_host
+3. sudo python3 setup_collector.py --venv-path venv_path/ --module-path src.collector.learn_host
 4. sudo python3 train_models.py
 5. sudo python3 setup_detector.py
 
