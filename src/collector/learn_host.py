@@ -9,6 +9,7 @@ from config import config
 from .collectors import collect_loop
 
 
+# default columns appear here as a single source of truth for the CSV file
 default_metrics = ["timestamp", "binary", "binary_MD5_hash", "cpu", "io_read", "io_write"]
 
 def setup_csv_file(csv_path: str = "metrics.csv",

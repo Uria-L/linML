@@ -1,6 +1,7 @@
 '''
 collectors.py
 '''
+
 import time
 import os
 import hashlib
@@ -23,14 +24,11 @@ SAMPLE_METRICS = ["child_count"]
 class ProcState:
     '''
     ProcState holds current state of a process.
-    A process's state is made from different metrics which describe it's behavior
+    A process's state is made from different metrics which describe its behavior
     '''
     def __init__(self, window_seconds=60):
 
         self.rates = {m: RateMetric(window_seconds) for m in RATE_METRICS}
-        # self.samples = {m: SampleMetric(window_seconds) for m in samples_metrics}
-        # self.count = {m: 0 for m in count_metrics}
-        # self.static = {}
         self.last_updated = time.time()
         self.baseline_score = 0.0
         self.updating_score = 0.0
@@ -86,7 +84,6 @@ def metric_collect_cpu(pid: int) -> int:
         raise PermissionError(f"can't read {pid} stats") from e
     except (ValueError, IndexError) as e:
         raise ValueError(f"can't parse stat file for process {pid}: {e}") from e
-
 def metric_collect_io_read(pid: int) -> int:
     '''
     collects total bytes read for a given pid
@@ -111,22 +108,21 @@ def metric_collect_io_read(pid: int) -> int:
 
         raise ValueError(f"rchar line not found in io file for process {pid}")
 
-    except (FileNotFoundError, ProcessLookupError) as e:
+    except FileNotFoundError as e:
         raise FileNotFoundError(f"can't find process {pid} io file") from e
     except PermissionError as e:
         raise PermissionError(f"can't access process {pid} io file") from e
     except (IndexError, ValueError) as e:
         raise ValueError(f"can't parse io file for process {pid}: {e}") from e
-
 def metric_collect_io_write(pid: int) -> int:
     '''
-    collects total bytes wrote for a given pid
+    collects total bytes written for a given pid
 
     Arguments:
         pid (int): number of process id to collect data on
 
     Returns:
-        number of bytes wrote on success
+        number of bytes written for a given pid
 
     Raises:
         FileNotFoundError: process doesn't exist
@@ -142,12 +138,12 @@ def metric_collect_io_write(pid: int) -> int:
 
         raise ValueError(f"wchar line not found in io file for process {pid}")
 
-    except (FileNotFoundError, ProcessLookupError) as e:
+    except FileNotFoundError as e:
         raise FileNotFoundError(f"can't find process {pid} io file") from e
     except PermissionError as e:
         raise PermissionError(f"can't access process {pid} io file") from e
     except (IndexError, ValueError) as e:
-        raise ValueError(f"can't parse io file for process{pid}: {e}") from e
+        raise ValueError(f"can't parse io file for process {pid}: {e}") from e
 
 
 # All collectors must accept (pid: int) and raise only:
@@ -164,7 +160,7 @@ def collect_metric(pid:int, metric: str) -> int:
     '''
     collect metrics on for a given pid
 
-    Argument:
+    Arguments:
         pid (int): pid number to collect data on
         metric (str): type of metric to be collected
 
@@ -178,7 +174,6 @@ def collect_metric(pid:int, metric: str) -> int:
         raise ValueError(f"Unknown metric: {metric}")
 
     return METRIC_COLLECTORS[metric](pid)
-
 def collect_per_pid(pid: int, metrics: list[str]) -> dict[str, int]:
     '''
     collect metrics about pid, return as a dict
@@ -199,7 +194,7 @@ def collect_per_pid(pid: int, metrics: list[str]) -> dict[str, int]:
             metric_val = collect_metric(pid, metric)
             pid_metrics[metric] = metric_val
 
-        except (FileNotFoundError, ProcessLookupError, PermissionError) as e:
+        except (FileNotFoundError, PermissionError) as e:
             logging.debug("can't collect %s for %d: %s", metric, pid, e)
             continue
         except ValueError as e:
@@ -207,17 +202,16 @@ def collect_per_pid(pid: int, metrics: list[str]) -> dict[str, int]:
             continue
 
     return pid_metrics
-
 def collect(pid_binary: dict[int, str],
             pids_metrics: dict[int, dict[str, int]],
-            metrics_to_collect: list) -> int:
+            metrics_to_collect: list[str]) -> int:
     '''
     collect telemetry on each pid
 
     Arguments:
         pid_binary (dict[int, str]): pid -> binary
         pids_metrics (dict[int, dict[str, int]]): pid -> (metric, value)
-        metrics_to_collect (list): metrics to collect for each pid
+        metrics_to_collect (list[str]): metrics to collect for each pid
 
     Returns:
         number of times data was collected on a pid successfully
@@ -246,17 +240,14 @@ def collect(pid_binary: dict[int, str],
     return n_collected
 
 ## Aggregate metrics functions
-
 def update_cpu(binary_metrics: defaultdict[str, int],
                pid_cpu: int) -> None:
     ''' update binary's CPU metric '''
     binary_metrics["cpu"] = binary_metrics.get("cpu", 0) + pid_cpu
-
 def update_io_read(binary_metrics: defaultdict[str, int],
                    pid_io_read: int) -> None:
     ''' update binary's io_read metric '''
     binary_metrics["io_read"] = binary_metrics.get("io_read", 0) + pid_io_read
-
 def update_io_write(binary_metrics: defaultdict[str, int],
                     pid_io_write: int) -> None:
     ''' update binary's io_write metric '''
@@ -303,7 +294,6 @@ def update_binary_metrics(pid_metrics: dict[str, int],
             continue
 
     return updated
-
 def aggregate(pid_binary: dict[int, str],
               pids_metrics: dict[int, dict[str, int]],
               binaries_metrics: dict[str, dict[str, int]]) -> int:
@@ -424,13 +414,12 @@ def emit_features(csv_path: str, binaries_states: defaultdict[str, ProcState]) -
 
 def collect_loop(csv_path: str, emit_every: int):
     '''
-    main collect loop on host.
+    main collect loop on host
     emit each binary's state to a csv file, every emit_every seconds
 
     Arguments:
         csv_path (str): path to csv file which holds the data
         emit_every (int): how many seconds between each emit
-
     '''
 
     logging.info("started collecting data on host. to exit, press CTRL-C")
@@ -461,7 +450,6 @@ def collect_loop(csv_path: str, emit_every: int):
 
         logging.info("collected: %d aggregated: %d",n_collected,n_aggregated)
         logging.info("updated %d states", n_updated - n_pruned)
-
 
         # 4. emit features
         if time.time() - last_emit > emit_every:

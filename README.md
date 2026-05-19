@@ -16,17 +16,23 @@ the project has 3 main components:
 
 # Requirements
 
-Just Linux & python
+Linux & Python
 
 # Quick start
 
 1. clone the repo
 2. install -r requirements.txt (use venv)
-3. sudo python3 setup_collector.py
-4. sudo python3 setup_engine.py
+3. sudo python3 setup_collector.py --venv-path venv_name/ --module-path src.collector.learn_host
+4. sudo python3 train_models.py
+5. sudo python3 setup_detector.py
 
-step 3 configures the data collector as a systemd service
-step 4 trains the selected models, and starts the detection engine as a systemd service
+step 3 starts the data collector as a systemd service
+
+step 4 trains selected models on the data collected from host
+
+step 5 starts the detection engine as a systemd service
+
+An in depth explanation for interacting with the data collection and detection engine services appears in the docs folder
 
 # Methods
 

@@ -1,6 +1,6 @@
 '''
 config.py
-this file contains configuration details for data collection for training the ML models
+this file contains configuration details used for data collection
 '''
 import os
 from pathlib import Path
@@ -15,5 +15,7 @@ MODE = os.getenv('APP_MODE', config_data.get('mode', 'development'))
 # env specific settings
 env_config = config_data[MODE]
 
+
+# data collection setting
 EMIT_EVERY = config_data['emit_every']
 CSV_PATH = env_config['csv_path']

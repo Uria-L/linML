@@ -12,16 +12,16 @@ import argparse
 from pathlib import Path
 
 
-def run(cmd, check=True):
-    """Run command, return success."""
+def run(cmd, check=True) -> bool:
+    '''Run command, return success.'''
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if check and result.returncode != 0:
         print(f"Error: {result.stderr}")
         return False
     return True
 
-def setup(project_root, venv_path, module_path, user="root"):
-    """Setup telemetry systemd service."""
+def setup(project_root, venv_path, module_path, user="root") -> bool:
+    '''Setup telemetry systemd service.'''
 
     if os.geteuid() != 0:
         print("Error: must run as root (use sudo)")
@@ -113,7 +113,6 @@ WantedBy=multi-user.target
     print(" Service failed to start")
     subprocess.run(["journalctl", "-u", "linML-collector.service", "-n", "20"], check=False)
     return False
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Setup telemetry systemd service")
